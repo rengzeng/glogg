@@ -29,6 +29,8 @@
 #include "quickfind.h"
 #include "overviewwidget.h"
 #include "quickfindmux.h"
+#include "callstack.h"
+#include "callstackmux.h"
 
 class QMenu;
 class QAction;
@@ -144,7 +146,7 @@ class Overview;
 // Base class representing the log view widget.
 // It can be either the top (full) or bottom (filtered) view.
 class AbstractLogView :
-    public QAbstractScrollArea, public SearchableWidgetInterface
+    public QAbstractScrollArea, public SearchableWidgetInterface, public CallStackInterface
 {
   Q_OBJECT
 
@@ -194,6 +196,7 @@ class AbstractLogView :
     Overview* getOverview() const { return overview_; }
     // Set the Overview and OverviewWidget
     void setOverview( Overview* overview, OverviewWidget* overview_widget );
+    void disableCallStack();
 
   signals:
     // Sent when a new line has been selected by the user.
@@ -221,6 +224,8 @@ class AbstractLogView :
     // Sent up for view initiated quickfind searches
     void searchNext();
     void searchPrevious();
+    // Sent up for view initiated callstack searches
+    void searchCallStackFromView();
 
   public slots:
     // Makes the widget select and display the passed line.
@@ -240,6 +245,8 @@ class AbstractLogView :
     virtual void incrementalSearchStop();
     // Abort the current incremental search (typically when user press esc)
     virtual void incrementalSearchAbort();
+
+    virtual void searchCallStack();
 
     // Signals the follow mode has been enabled.
     void followSet( bool checked );
@@ -261,6 +268,7 @@ class AbstractLogView :
     void findNextSelected();
     void findPreviousSelected();
     void copy();
+    void findCallStack();
 
   private:
     // Constants
@@ -325,11 +333,15 @@ class AbstractLogView :
     QAction* findNextAction_;
     QAction* findPreviousAction_;
     QAction* addToSearchAction_;
+    QAction* callStackAction_;
 
     // Pointer to the CrawlerWidget's QFP object
     const QuickFindPattern* const quickFindPattern_;
     // Our own QuickFind object
     QuickFind quickFind_;
+
+    // CallStack object
+    CallStack callStack_;
 
     int getNbVisibleLines() const;
     int getNbVisibleCols() const;

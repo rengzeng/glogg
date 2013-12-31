@@ -38,7 +38,9 @@ SOURCES += main.cpp \
     overview.cpp \
     overviewwidget.cpp \
     marks.cpp \
-    quickfindmux.cpp
+    quickfindmux.cpp \
+    callstack.cpp \
+    callstackmux.cpp
 
 HEADERS += \
     mainwindow.h \
@@ -72,7 +74,9 @@ HEADERS += \
     overviewwidget.h \
     marks.h \
     qfnotifications.h \
-    quickfindmux.h
+    quickfindmux.h \
+    callstack.h \
+    callstackmux.h
 
 isEmpty(BOOST_PATH) {
     message(Building using system dynamic Boost libraries)

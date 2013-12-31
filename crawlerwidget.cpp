@@ -44,6 +44,7 @@
 #include "persistentinfo.h"
 #include "configuration.h"
 
+
 // Palette for error signaling (yellow background)
 const QPalette CrawlerWidget::errorPalette( QColor( "yellow" ) );
 
@@ -64,6 +65,8 @@ CrawlerWidget::CrawlerWidget(SavedSearches* searches, QWidget *parent)
     // to the right window
     quickFindMux_ = new QuickFindMux( this );
 
+    callStackMux_ = new CallStackMux( this );
+
     // The views
     bottomWindow = new QWidget;
     overviewWidget_ = new OverviewWidget();
@@ -79,6 +82,9 @@ CrawlerWidget::CrawlerWidget(SavedSearches* searches, QWidget *parent)
 
     quickFindMux_->registerSearchable( logMainView );
     quickFindMux_->registerSearchable( filteredView );
+
+    callStackMux_->registerSearchable(logMainView);
+    callStackMux_->registerSearchable(filteredView);
 
     // Construct the visibility button
     visibilityModel_ = new QStandardItemModel( this );
@@ -366,6 +372,11 @@ SearchableWidgetInterface* CrawlerWidget::getActiveSearchable() const
         return logMainView;
 }
 
+// Return a pointer to the view in which we should do the QuickFind
+CallStackInterface* CrawlerWidget::getMainView() const
+{
+    return logMainView;
+}
 //
 // Events handlers
 //

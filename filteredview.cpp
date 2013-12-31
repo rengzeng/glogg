@@ -31,6 +31,7 @@ FilteredView::FilteredView( LogFilteredData* newLogData,
 {
     // We keep a copy of the filtered data for fast lookup of the line type
     logFilteredData_ = newLogData;
+    disableCallStack();
 }
 
 void FilteredView::setVisibility( Visibility visi )

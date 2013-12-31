@@ -244,7 +244,8 @@ AbstractLogView::AbstractLogView(const AbstractLogData* newLogData,
     autoScrollTimer_(),
     selection_(),
     quickFindPattern_( quickFindPattern ),
-    quickFind_( newLogData, &selection_, quickFindPattern )
+    quickFind_( newLogData, &selection_, quickFindPattern ),
+    callStack_( newLogData, &selection_)
 {
     logData = newLogData;
 
@@ -354,10 +355,12 @@ void AbstractLogView::mousePressEvent( QMouseEvent* mouseEvent )
         // Prepare the popup depending on selection type
         if ( selection_.isSingleLine() ) {
             copyAction_->setText( "&Copy this line" );
+            callStackAction_->setEnabled( true );
         }
         else {
             copyAction_->setText( "&Copy" );
             copyAction_->setStatusTip( tr("Copy the selection") );
+            callStackAction_->setEnabled( false );
         }
 
         if ( selection_.isPortion() ) {
@@ -756,6 +759,12 @@ void AbstractLogView::paintEvent( QPaintEvent* paintEvent )
                         &foreColor, &backColor ) ) {
                 // Apply a filter to the line
             }
+            else if (callStack_.getStack().contains( i ))
+            {
+                foreColor = palette.color( QPalette::HighlightedText );
+                backColor = QColor(0, 0, 255, 127) ;
+                painter.setPen(palette.color(QPalette::Text));
+            }
             else {
                 // Use the default colors
                 foreColor = palette.color( QPalette::Text );
@@ -968,6 +977,12 @@ void AbstractLogView::incrementalSearchStop()
     quickFind_.incrementalSearchStop();
 }
 
+void AbstractLogView::searchCallStack()
+{
+    callStack_.searchCallStack();
+    update();
+}
+
 void AbstractLogView::followSet( bool checked )
 {
     followMode_ = checked;
@@ -1009,6 +1024,20 @@ void AbstractLogView::addToSearch()
     else {
         LOG(logERROR) << "AbstractLogView::addToSearch called for a wrong type of selection";
     }
+}
+
+void AbstractLogView::disableCallStack()
+{
+    callStack_.disable();
+}
+
+void AbstractLogView::findCallStack()
+{
+    LOG(logINFO) << "Entering findCallStack";
+    if ( selection_.isSingleLine() ) {
+        emit searchCallStackFromView();
+    }
+
 }
 
 // Find next occurence of the selected text (*)
@@ -1371,6 +1400,11 @@ void AbstractLogView::createMenu()
     // No text as this action title depends on the type of selection
     connect( copyAction_, SIGNAL(triggered()), this, SLOT(copy()) );
 
+    callStackAction_ = new QAction( tr("Call &stack (ShareFile Sync)"), this );
+    callStackAction_->setStatusTip( tr("Find the function calls on stack for current selected line"));
+    connect( callStackAction_, SIGNAL(triggered()),
+             this, SLOT(findCallStack()));
+
     // For '#' and '*', shortcuts doesn't seem to work but
     // at least it displays them in the menu, we manually handle those keys
     // as keys event anyway (in keyPressEvent).
@@ -1398,6 +1432,8 @@ void AbstractLogView::createMenu()
     popupMenu_->addAction( findNextAction_ );
     popupMenu_->addAction( findPreviousAction_ );
     popupMenu_->addAction( addToSearchAction_ );
+    popupMenu_->addSeparator();
+    popupMenu_->addAction( callStackAction_);
 }
 
 void AbstractLogView::considerMouseHovering( int x_pos, int y_pos )
